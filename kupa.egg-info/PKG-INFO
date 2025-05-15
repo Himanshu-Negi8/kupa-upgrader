@@ -1,0 +1,41 @@
+Metadata-Version: 2.4
+Name: kupa
+Version: 0.1.0
+Summary: Kubernetes Upgrade Path Analyzer - Detects breaking changes in K8s YAML resources
+Home-page: https://github.com/yourusername/kupa
+Author: KuPa Team
+Author-email: example@example.com
+Keywords: kubernetes,upgrade,breaking changes,yaml,analysis
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: System Administrators
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Requires-Python: >=3.8
+Requires-Dist: click
+Requires-Dist: pyyaml
+Requires-Dist: requests
+Requires-Dist: gitpython
+Requires-Dist: pygithub
+Requires-Dist: fastapi
+Requires-Dist: uvicorn[standard]
+Requires-Dist: openai
+Requires-Dist: beautifulsoup4
+Provides-Extra: dev
+Requires-Dist: pytest>=7.0.0; extra == "dev"
+Requires-Dist: black>=23.0.0; extra == "dev"
+Requires-Dist: flake8>=6.0.0; extra == "dev"
+Requires-Dist: pytest-cov>=4.0.0; extra == "dev"
+Requires-Dist: wheel>=0.38.0; extra == "dev"
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: home-page
+Dynamic: keywords
+Dynamic: provides-extra
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary

@@ -1,0 +1,25 @@
+# KuPa Configuration
+
+# Kubernetes version settings
+kubernetes_versions:
+  latest: "v1.28.0"
+  lts: "v1.24.0"
+
+# AI model settings
+ai_model:
+  provider: "openai"  # Options: openai, local, custom
+  model: "gpt-4-turbo"
+  temperature: 0.1
+  max_tokens: 4000
+
+# External sources settings
+external_sources:
+  docs_url: "https://kubernetes.io/docs"
+  api_reference_url: "https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/"
+  changelog_url: "https://github.com/kubernetes/kubernetes/tree/master/CHANGELOG"
+  
+# GitHub settings
+github:
+  default_branch_prefix: "kupa-k8s-upgrade-"
+  commit_message_template: "Fix Kubernetes breaking changes for version {version}"
+  pr_title_template: "Fix Kubernetes breaking changes for version {version}"

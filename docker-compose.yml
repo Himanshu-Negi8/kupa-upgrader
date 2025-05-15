@@ -1,0 +1,26 @@
+version: '3'
+
+services:
+  kupa-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+    volumes:
+      - ./config:/app/config
+    command: server --port 8080
+    restart: unless-stopped
+
+  # Optional: Add a simple web UI if desired
+  # kupa-ui:
+  #   image: nginx:alpine
+  #   ports:
+  #     - "8081:80"
+  #   volumes:
+  #     - ./ui:/usr/share/nginx/html
+  #   depends_on:
+  #     - kupa-server

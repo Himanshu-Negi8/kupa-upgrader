@@ -1,0 +1,16 @@
+click
+pyyaml
+requests
+gitpython
+pygithub
+fastapi
+uvicorn[standard]
+openai
+beautifulsoup4
+
+[dev]
+pytest>=7.0.0
+black>=23.0.0
+flake8>=6.0.0
+pytest-cov>=4.0.0
+wheel>=0.38.0

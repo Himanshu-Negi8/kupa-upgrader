@@ -1,0 +1,20 @@
+apiVersion: apps/v1beta2  # This is a deprecated version
+kind: Deployment
+metadata:
+  name: example-app
+  namespace: default
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: example-app
+  template:
+    metadata:
+      labels:
+        app: example-app
+    spec:
+      containers:
+      - name: example-app
+        image: nginx:latest
+        ports:
+        - containerPort: 80

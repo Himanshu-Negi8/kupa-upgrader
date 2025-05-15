@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# KuPa runner script
+
+# Get the directory of this script
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# Activate virtual environment
+source "$DIR/venv/bin/activate"
+
+# Run KuPa with all arguments passed to this script
+python -m kupa.cli "$@"
