@@ -1,0 +1,14 @@
+apiVersion: extensions/v1beta1  # This is a deprecated version
+kind: Ingress
+metadata:
+  name: example-ingress
+  namespace: default
+spec:
+  rules:
+  - host: example.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: example-service
+          servicePort: 80

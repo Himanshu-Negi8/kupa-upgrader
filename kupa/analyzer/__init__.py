@@ -45,10 +45,18 @@ class BreakingChange:
         self.updated_content = updated_content
 
 
-def find_yaml_files(directory: str) -> List[str]:
-    """Find all YAML files in a directory recursively."""
+def find_yaml_files(path: str) -> List[str]:
+    """Find all YAML files in a directory recursively or return the path if it's a file."""
     yaml_files = []
-    for root, _, files in os.walk(directory):
+    
+    # Check if path is a file
+    if os.path.isfile(path):
+        if path.endswith(('.yaml', '.yml')):
+            yaml_files.append(path)
+        return yaml_files
+    
+    # If path is a directory, walk through it
+    for root, _, files in os.walk(path):
         for file in files:
             if file.endswith(('.yaml', '.yml')):
                 yaml_files.append(os.path.join(root, file))
@@ -98,17 +106,96 @@ def parse_k8s_yaml(file_path: str) -> List[K8sResource]:
 
 # Add a static fallback for deprecated/removed API versions
 DEPRECATED_API_VERSIONS = {
+    # Deployments
+    ("Deployment", "apps/v1beta1"): {
+        "removed_in": "v1.16.0",
+        "replacement": "apps/v1",
+        "description": "apps/v1beta1 was removed in Kubernetes v1.16. Use apps/v1 instead."
+    },
     ("Deployment", "apps/v1beta2"): {
         "removed_in": "v1.16.0",
         "replacement": "apps/v1",
         "description": "apps/v1beta2 was removed in Kubernetes v1.16. Use apps/v1 instead."
     },
+    ("Deployment", "extensions/v1beta1"): {
+        "removed_in": "v1.16.0",
+        "replacement": "apps/v1",
+        "description": "extensions/v1beta1 for Deployments was removed in Kubernetes v1.16. Use apps/v1 instead."
+    },
+    
+    # StatefulSets
+    ("StatefulSet", "apps/v1beta1"): {
+        "removed_in": "v1.16.0", 
+        "replacement": "apps/v1",
+        "description": "apps/v1beta1 was removed in Kubernetes v1.16. Use apps/v1 instead."
+    },
+    ("StatefulSet", "apps/v1beta2"): {
+        "removed_in": "v1.16.0",
+        "replacement": "apps/v1",
+        "description": "apps/v1beta2 was removed in Kubernetes v1.16. Use apps/v1 instead."
+    },
+    
+    # DaemonSets
+    ("DaemonSet", "apps/v1beta2"): {
+        "removed_in": "v1.16.0",
+        "replacement": "apps/v1",
+        "description": "apps/v1beta2 was removed in Kubernetes v1.16. Use apps/v1 instead."
+    },
+    ("DaemonSet", "extensions/v1beta1"): {
+        "removed_in": "v1.16.0",
+        "replacement": "apps/v1",
+        "description": "extensions/v1beta1 for DaemonSets was removed in Kubernetes v1.16. Use apps/v1 instead."
+    },
+    
+    # ReplicaSets
+    ("ReplicaSet", "apps/v1beta2"): {
+        "removed_in": "v1.16.0",
+        "replacement": "apps/v1",
+        "description": "apps/v1beta2 was removed in Kubernetes v1.16. Use apps/v1 instead."
+    },
+    ("ReplicaSet", "extensions/v1beta1"): {
+        "removed_in": "v1.16.0",
+        "replacement": "apps/v1",
+        "description": "extensions/v1beta1 for ReplicaSets was removed in Kubernetes v1.16. Use apps/v1 instead."
+    },
+    
+    # Ingress
     ("Ingress", "extensions/v1beta1"): {
         "removed_in": "v1.22.0",
         "replacement": "networking.k8s.io/v1",
         "description": "extensions/v1beta1 was removed in Kubernetes v1.22. Use networking.k8s.io/v1 instead."
     },
-    # Add more known deprecated/removed APIs as needed
+    ("Ingress", "networking.k8s.io/v1beta1"): {
+        "removed_in": "v1.22.0",
+        "replacement": "networking.k8s.io/v1",
+        "description": "networking.k8s.io/v1beta1 was removed in Kubernetes v1.22. Use networking.k8s.io/v1 instead."
+    },
+    
+    # NetworkPolicies
+    ("NetworkPolicy", "extensions/v1beta1"): {
+        "removed_in": "v1.16.0",
+        "replacement": "networking.k8s.io/v1",
+        "description": "extensions/v1beta1 for NetworkPolicies was removed in Kubernetes v1.16. Use networking.k8s.io/v1 instead."
+    },
+    
+    # PodSecurityPolicies
+    ("PodSecurityPolicy", "extensions/v1beta1"): {
+        "removed_in": "v1.21.0",
+        "replacement": "policy/v1beta1",
+        "description": "extensions/v1beta1 for PodSecurityPolicies was removed in Kubernetes v1.21. Use policy/v1beta1 instead."
+    },
+    ("PodSecurityPolicy", "policy/v1beta1"): {
+        "removed_in": "v1.25.0", 
+        "replacement": "None - PSPs are removed entirely",
+        "description": "PodSecurityPolicy was entirely removed in Kubernetes v1.25. Use Pod Security Standards and Admission instead."
+    },
+    
+    # CRDs
+    ("CustomResourceDefinition", "apiextensions.k8s.io/v1beta1"): {
+        "removed_in": "v1.22.0",
+        "replacement": "apiextensions.k8s.io/v1",
+        "description": "apiextensions.k8s.io/v1beta1 was removed in Kubernetes v1.22. Use apiextensions.k8s.io/v1 instead."
+    }
 }
 
 def check_for_breaking_changes(resource: K8sResource, target_k8s_version: str) -> Optional[BreakingChange]:

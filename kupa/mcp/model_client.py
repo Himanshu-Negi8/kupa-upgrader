@@ -74,20 +74,94 @@ def query_model_for_changes(resource: K8sResource, target_k8s_version: str) -> D
         """
         
         if os.environ.get("MODEL_PROVIDER") == "ollama":
-            # Query local Ollama server
-            ollama_model = ai_config.get("model", "codellama:7b")
-            ollama_url = "http://localhost:11434/api/generate"
-            ollama_payload = {
-                "model": ollama_model,
-                "prompt": prompt,
-                "stream": False
-            }
-            ollama_response = requests.post(ollama_url, json=ollama_payload)
-            ollama_response.raise_for_status()
-            response_json = ollama_response.json()
-            # Ollama returns the response in the 'response' field
-            response_text = response_json["response"]
-            response = type('OllamaResponse', (), {"choices": [type('Choice', (), {"message": type('Message', (), {"content": response_text})()})()]})()
+            try:
+                # First check if the Ollama server is running and which models are available
+                logger.info("Using Ollama as model provider. Checking available models...")
+                ollama_models_url = "http://localhost:11434/api/tags"
+                models_response = requests.get(ollama_models_url)
+                models_response.raise_for_status()
+                available_models = models_response.json().get("models", [])
+                
+                # Get model name from config (default to llama3)
+                ollama_model = ai_config.get("model", "llama3")
+                available_model_names = [model.get("name").split(":")[0] for model in available_models]
+                
+                # Make sure we have a model that exists
+                if not any(ollama_model.startswith(name) for name in available_model_names):
+                    logger.warning(f"Model {ollama_model} not found in Ollama. Available models: {available_model_names}")
+                    if "llama3" in available_model_names:
+                        logger.info("Falling back to llama3 model")
+                        ollama_model = "llama3"
+                    else:
+                        logger.warning(f"No suitable models found in Ollama. Using first available: {available_model_names[0]}")
+                        ollama_model = available_model_names[0]
+                
+                # Query local Ollama server
+                logger.info(f"Querying Ollama with model: {ollama_model}")
+                ollama_url = "http://localhost:11434/api/generate"
+                ollama_payload = {
+                    "model": ollama_model,
+                    "prompt": prompt,
+                    "stream": False
+                }
+                ollama_response = requests.post(ollama_url, json=ollama_payload)
+                ollama_response.raise_for_status()
+                response_json = ollama_response.json()
+                # Ollama returns the response in the 'response' field
+                response_text = response_json["response"]
+                logger.debug(f"Got response from Ollama: {response_text[:100]}...")
+                
+                # Helper function to extract JSON from potential free-form text
+                def extract_json_from_text(text):
+                    import re
+                    # Find JSON pattern between curly braces
+                    json_pattern = re.search(r'({[\s\S]*?})', text)
+                    if json_pattern:
+                        potential_json = json_pattern.group(1)
+                        try:
+                            return json.loads(potential_json)
+                        except json.JSONDecodeError:
+                            pass
+                    
+                    # Try with code block format ```json ... ```
+                    code_block_pattern = re.search(r'```(?:json)?\s*([\s\S]*?)\s*```', text)
+                    if code_block_pattern:
+                        potential_json = code_block_pattern.group(1)
+                        try:
+                            return json.loads(potential_json)
+                        except json.JSONDecodeError:
+                            pass
+                    
+                    # Return a default response if no valid JSON found
+                    logger.warning("Could not extract valid JSON from Ollama response")
+                    return {
+                        "has_breaking_change": True,
+                        "change_type": "API_DEPRECATED",
+                        "description": "Could not parse model response. Using static fallback information.",
+                        "recommended_action": "Check manually or try again.",
+                        "updated_content": {}
+                    }
+
+                # Try to extract JSON from the response
+                try:
+                    model_response = extract_json_from_text(response_text)
+                    # Create a mock response object that matches the expected structure
+                    response = type('OllamaResponse', (), {"choices": [type('Choice', (), {"message": type('Message', (), {"content": json.dumps(model_response)})()})()]})()
+                except Exception as e:
+                    logger.error(f"Error extracting JSON from Ollama response: {e}")
+                    raise
+            except requests.exceptions.ConnectionError:
+                logger.error("Failed to connect to Ollama server. Is it running? Try: ollama serve")
+                raise
+            except requests.exceptions.HTTPError as e:
+                logger.error(f"HTTP error from Ollama: {e}")
+                raise
+            except KeyError as e:
+                logger.error(f"Unexpected response format from Ollama: {e}")
+                raise
+            except Exception as e:
+                logger.error(f"Unexpected error querying Ollama: {e}")
+                raise
         elif model_provider.lower() == "openai":
             # Initialize OpenAI client
             client = OpenAI(api_key=os.environ.get('OPENAI_API_KEY', 'your-api-key'))

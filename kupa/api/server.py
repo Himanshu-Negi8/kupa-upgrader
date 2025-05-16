@@ -189,8 +189,7 @@ async def analyze_github(github_request: GithubRequest):
                     
                 return AnalysisResponse(
                     status="success",
-                    message=f"Analysis complete. Found {len(results)} breaking changes." 
-                            (f" Pull request created: {pr_url}" if pr_url else ""),
+                    message=f"Analysis complete. Found {len(results)} breaking changes.{' Pull request created: ' + pr_url if pr_url else ''}",
                     breaking_changes=serializable_results,
                     pr_url=pr_url
                 )
