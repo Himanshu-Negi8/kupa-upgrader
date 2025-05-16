@@ -1,4 +1,4 @@
-apiVersion: apps/v1beta2  # This is a deprecated version
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: example-app
@@ -14,7 +14,7 @@ spec:
         app: example-app
     spec:
       containers:
-      - name: example-app
-        image: nginx:latest
+      - image: nginx:latest
+        name: example-app
         ports:
         - containerPort: 80
